@@ -2,7 +2,7 @@
 
 Simple MTA status alerts for your line of choice.
 
-![MTA Status Page Screenshot](screenshot.png)
+![MTA Status Page Screenshot](https://github.com/timnetworks/simpleSubwayStatus/blob/main/screenshot.jpg?raw=true)
 
 ## Simple Features
 
