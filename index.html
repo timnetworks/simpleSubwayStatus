@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Status Page</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header-container">
+      <img src="./mtalogo.png" alt="MTA New York City Subway" class="logo" />
+      <button id="refresh-button" class="refresh-button" title="Refresh statuses">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+        </svg>
+      </button>
+    </div>
+    <div id="line-filters" class="line-filters">
+      <div class="filter-header">
+        <span class="filter-label">Filter by line:</span>
+        <button id="clear-filters" class="clear-filters-button">Show All</button>
+      </div>
+      <div class="filter-buttons"></div>
+    </div>
+    <div id="status-container">Loading statuses...</div>
+    <footer class="footer">
+      <div class="footer-main">
+        <a href="https://mta.info" target="_blank" rel="noopener">visit mta.info</a>
+        <span class="footer-divider">•</span>
+        <a href="https://github.com/timnetworks/simpleSubwayStatus" target="_blank" rel="noopener">code on git</a>
+        <span class="footer-divider">•</span>
+        <span>made with 🤖 ClaudeAI</span>
+      </div>
+      <div class="footer-copyright">©2025 <a target="blank" href="https://timnetworks.com">timnetworks</a> corporation, all rights reserved</div>
+    </footer>
+  </div>
+
+  <script>
+    // Group lines by color for filtering
+    const lineGroups = {
+      blue: ['A', 'C', 'E'],
+      orange: ['B', 'D', 'F', 'M'],
+      green: ['G'],
+      brown: ['J', 'Z'],
+      gray: ['L', 'S'],
+      yellow: ['N', 'Q', 'R', 'W'],
+      red: ['1', '2', '3'],
+      darkGreen: ['4', '5', '6'],
+      purple: ['7']
+    };
+
+    // Define color mapping
+    const lineColors = {
+      A: '#0039A6', C: '#0039A6', E: '#0039A6',
+      B: '#FF6319', D: '#FF6319', F: '#FF6319', M: '#FF6319',
+      G: '#6CBE45', J: '#996633', Z: '#996633',
+      L: '#A7A9AC', N: '#FCCC0A', Q: '#FCCC0A', R: '#FCCC0A', W: '#FCCC0A',
+      S: '#808183',
+      '1': '#EE352E', '2': '#EE352E', '3': '#EE352E',
+      '4': '#00933C', '5': '#00933C', '6': '#00933C',
+      '7': '#B933AD'
+    };
+    
+    // Filter state - initially show all lines
+    let activeFilters = {
+      all: true  // Special filter state for showing all
+    };
+
+    function createLineBadge(line) {
+      const badge = document.createElement('span');
+      badge.textContent = line;
+      badge.style.backgroundColor = lineColors[line] || '#000';
+      badge.className = 'line-badge';
+      return badge;
+    }
+
+    // Create filters for line groups
+    function createLineFilters() {
+      const filterContainer = document.querySelector('.filter-buttons');
+      filterContainer.innerHTML = '';
+      
+      // Create individual line filters instead of groups
+      const allLines = [];
+      Object.values(lineGroups).forEach(lines => allLines.push(...lines));
+      
+      // Sort lines alphabetically with numbers first
+      allLines.sort((a, b) => {
+        const isANumber = !isNaN(parseInt(a));
+        const isBNumber = !isNaN(parseInt(b));
+        
+        if (isANumber && !isBNumber) return -1;
+        if (!isANumber && isBNumber) return 1;
+        return a.localeCompare(b);
+      });
+      
+      allLines.forEach(line => {
+        const filterButton = document.createElement('div');
+        filterButton.className = 'filter-button';
+        filterButton.dataset.line = line;
+        
+        const badge = createLineBadge(line);
+        badge.classList.add('filter-badge');
+        filterButton.appendChild(badge);
+        
+        filterButton.addEventListener('click', () => {
+          // If we click on a line, only show that line
+          if (activeFilters.all) {
+            // First click - switch from showing all to showing only this line
+            activeFilters = { all: false };
+            document.querySelectorAll('.filter-button').forEach(btn => {
+              btn.classList.remove('active');
+            });
+          }
+          
+          // Toggle this specific line
+          if (activeFilters[line]) {
+            delete activeFilters[line];
+            filterButton.classList.remove('active');
+          } else {
+            activeFilters[line] = true;
+            filterButton.classList.add('active');
+          }
+          
+          // If nothing is selected, show all
+          if (Object.keys(activeFilters).length === 1 && !activeFilters.all) {
+            activeFilters = { all: true };
+            document.querySelectorAll('.filter-button').forEach(btn => {
+              btn.classList.remove('active');
+            });
+          }
+          
+          applyFilters();
+        });
+        
+        filterContainer.appendChild(filterButton);
+      });
+      
+      // Set up clear filters button
+      document.getElementById('clear-filters').addEventListener('click', () => {
+        activeFilters = { all: true };
+        document.querySelectorAll('.filter-button').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        applyFilters();
+      });
+    }
+    
+    // Apply current filters to the status cards
+    function applyFilters() {
+      const statusCards = document.querySelectorAll('.status-card');
+      
+      statusCards.forEach(card => {
+        const lineBadges = card.querySelectorAll('.line-badge');
+        let shouldShow = activeFilters.all;
+        
+        if (!shouldShow) {
+          // Check if any of the lines in this card match our active filters
+          lineBadges.forEach(badge => {
+            const line = badge.textContent.trim();
+            if (activeFilters[line]) {
+              shouldShow = true;
+            }
+          });
+        }
+        
+        card.style.display = shouldShow ? '' : 'none';
+      });
+    }
+
+    // Calculate time ago
+    function timeAgo(timestamp) {
+      const now = new Date();
+      const pastDate = new Date(timestamp * 1000);
+      const diff = Math.floor((now - pastDate) / 1000);
+      
+      if (diff < 0) {
+        // Future date - unusual but possible if clocks are out of sync
+        return "just now";
+      }
+      
+      const minute = 60;
+      const hour = minute * 60;
+      const day = hour * 24;
+      const week = day * 7;
+      const month = day * 30;
+      const year = day * 365;
+      
+      if (diff < minute) {
+        return "just now";
+      } else if (diff < hour) {
+        const minutes = Math.floor(diff / minute);
+        return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
+      } else if (diff < day) {
+        const hours = Math.floor(diff / hour);
+        return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+      } else if (diff < week) {
+        const days = Math.floor(diff / day);
+        return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+      } else if (diff < month) {
+        const weeks = Math.floor(diff / week);
+        return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+      } else if (diff < year) {
+        const months = Math.floor(diff / month);
+        return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+      } else {
+        const years = Math.floor(diff / year);
+        return `${years} ${years === 1 ? 'year' : 'years'} ago`;
+      }
+    }
+
+    // Format full date in Eastern Time
+    function formatFullDate(timestamp) {
+      const date = new Date(timestamp * 1000);
+      return date.toLocaleString('en-US', {
+        timeZone: 'America/New_York',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+
+    async function fetchStatuses() {
+      try {
+        const response = await fetch('status.php');
+        const data = await response.json();
+        const container = document.getElementById('status-container');
+        container.innerHTML = '';
+
+        if (data && Array.isArray(data.entity) && data.entity.length > 0) {
+          const statusWrapper = document.createElement('div');
+          statusWrapper.className = 'status-wrapper';
+          
+          data.entity.forEach(item => {
+            const alert = item.alert;
+            const headerText = alert.header_text?.translation?.find(t => t.language === 'en')?.text || 'No header available';
+            const descriptionText = alert.description_text?.translation?.find(t => t.language === 'en')?.text || 'No description available';
+            
+            // Extract unique line IDs and filter out any undefined or falsy values
+            const lines = [...new Set(
+              alert.informed_entity
+                .filter(entity => entity.route_id)
+                .map(entity => entity.route_id)
+            )];
+
+            // Get active period time information
+            let timeInfo = '';
+            if (alert.active_period && alert.active_period.length > 0) {
+              const period = alert.active_period[0];
+              const timestamp = period.start;
+              const relativeTime = timeAgo(timestamp);
+              const fullDateTime = formatFullDate(timestamp);
+              
+              timeInfo = `
+                <div class="alert-time">
+                  <span class="time-ago">Alert Issued: ${relativeTime}</span>
+                  <span class="full-date">${fullDateTime}</span>
+                </div>`;
+            }
+
+            const div = document.createElement('div');
+            div.className = 'status-card';
+            div.innerHTML = '<div class="status-header"></div><div class="status-details hidden"></div>';
+
+            const headerDiv = div.querySelector('.status-header');
+            const lineContainer = document.createElement('div');
+            lineContainer.className = 'line-container';
+            
+            // Only create badges for actual line IDs
+            lines.forEach(line => {
+              if (line && lineColors[line]) {
+                lineContainer.appendChild(createLineBadge(line));
+              }
+            });
+            
+            headerDiv.appendChild(lineContainer);
+            
+            // Create a separate element for the header text
+            const headerTextElement = document.createElement('strong');
+            headerTextElement.textContent = headerText;
+            headerDiv.appendChild(headerTextElement);
+            
+            // Add timestamp information
+            headerDiv.insertAdjacentHTML('beforeend', timeInfo);
+
+            const detailsDiv = div.querySelector('.status-details');
+            detailsDiv.innerHTML = `<p>${descriptionText}</p>`;
+
+            div.addEventListener('click', (e) => {
+              // Prevent event bubbling to parent elements
+              e.stopPropagation();
+              detailsDiv.classList.toggle('hidden');
+            });
+            
+            statusWrapper.appendChild(div);
+          });
+          
+          container.appendChild(statusWrapper);
+          
+          // Apply filters after loading content
+          applyFilters();
+        } else {
+          container.innerHTML = '<p>No current alerts.</p>';
+        }
+      } catch (error) {
+        document.getElementById('status-container').innerHTML = '<p>Failed to fetch data.</p>';
+      }
+    }
+
+    document.getElementById('refresh-button').addEventListener('click', fetchStatuses);
+    
+    // Create line filters and then fetch statuses
+    createLineFilters();
+    fetchStatuses();
+  </script>
+</body>
+</html>
