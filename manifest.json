@@ -1,5 +1,5 @@
 {
-  "name": "simSubs v0.1.2",
+  "name": "simSubs v0.2",
   "short_name": "simSubs",
   "description": "Simple Subway status alerts for the New York City MTA",
   "start_url": "/index.html",
