@@ -67,7 +67,6 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.75rem;
-  /* Remove clear filters button from here */
 }
 
 .filter-label {
@@ -75,20 +74,28 @@ body {
   color: var(--base1);
 }
 
+.filter-group-container {
+    display: inline-flex;
+    gap: 4px;
+    padding: 2px;
+    border-radius: 20px;
+}
 
 .filter-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 1rem; /* Increased gap between groups */
+  align-items: center; /* Align groups vertically */
 }
 
 .filter-button {
   cursor: pointer;
   opacity: 0.6;
-  transition: opacity 0.2s, transform 0.2s;
-  border-radius: 50%; /* Make the clickable area round */
-  padding: 2px; /* Add slight padding around badge if needed */
-  display: inline-flex; /* Ensure it wraps the badge tightly */
+  transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+  border-radius: 50%; /* Make the clickable area/outline circular */
+  padding: 2px;       /* Padding around the badge for the outline */
+  display: inline-flex; /* Wraps the badge */
+  /* vertical-align: middle; /* Keep for alignment */
 }
 
 .filter-button:hover {
@@ -98,23 +105,21 @@ body {
 
 .filter-button.active {
   opacity: 1;
-  box-shadow: 0 0 0 2px var(--blue); /* Indicate active state */
+  box-shadow: 0 0 0 2px var(--blue); /* Circular active state outline */
 }
 
-.filter-badge { /* Styles for badges used in filters */
+.filter-badge { /* Styles for badges used in filters - ensure circular */
   width: 30px;
   height: 30px;
-  min-width: 30px;
+  min-width: 30px; /* Prevent shrinking */
   min-height: 30px;
-  font-size: 14px; /* Slightly smaller font for filter badges */
-  line-height: 30px; /* Center text vertically */
-  /* Inherit common badge styles */
+  border-radius: 50%; /* Ensure it's a circle */
+  font-size: 14px;
   display: flex;
   justify-content: center;
   align-items: center;
   color: #fff;
   font-weight: bold;
-  border-radius: 50%;
   text-align: center;
   overflow: hidden;
 }
@@ -128,7 +133,7 @@ h1 {
 #status-container {
   margin-top: 1rem;
   flex-grow: 1;
-  position: relative; /* Needed for absolute positioning of no-alerts */
+  position: relative;
 }
 
 .status-wrapper {
@@ -151,9 +156,9 @@ h1 {
   break-inside: avoid;
   box-sizing: border-box;
   transition: box-shadow 0.3s;
-  height: fit-content; /* Important for grid layout */
-  display: flex; /* Use flex for better internal layout control */
-  flex-direction: column; /* Stack header and details */
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
 }
 
 .status-card:hover {
@@ -164,39 +169,39 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 0.5rem; /* Space between header and details */
+  margin-bottom: 0.5rem;
 }
 
 .line-container {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
-  margin-bottom: 0.25rem; /* Reduced margin */
+  margin-bottom: 0.25rem;
 }
 
 .status-card strong {
   color: var(--green);
-  display: block; /* Ensure header text takes full width */
+  display: block;
   font-weight: bold;
-  font-size: 1rem; /* Ensure header size */
+  font-size: 1rem;
 }
 
 .status-card p { /* Details text */
   color: var(--base00);
-  margin: 0; /* Remove default margin */
+  margin: 0;
   font-size: 0.9rem;
   line-height: 1.4;
 }
 
 .status-details {
-    margin-top: 0.5rem; /* Add space above details when shown */
+    margin-top: 0.5rem;
 }
 
 .status-details.hidden {
   display: none;
 }
 
-.line-badge { /* Styles for badges inside alert cards */
+.line-badge {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -204,14 +209,14 @@ h1 {
   font-weight: bold;
   width: 24px;
   height: 24px;
-  min-width: 24px; /* Prevent shrinking */
+  min-width: 24px;
   min-height: 24px;
   border-radius: 50%;
   text-align: center;
-  font-size: 12px; /* Smaller font for card badges */
-  line-height: 24px; /* Center text vertically */
+  font-size: 12px;
+  line-height: 24px;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Subtle shadow */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .alert-time {
@@ -243,10 +248,10 @@ h1 {
     color: var(--base01);
     width: 100%;
     box-sizing: border-box;
-    flex-grow: 1; /* Try to take remaining space */
+    flex-grow: 1;
 }
 .no-alerts img {
-    max-width: 100px; /* Adjust size as needed */
+    max-width: 100px;
     margin-bottom: 1rem;
     opacity: 0.7;
 }
@@ -307,20 +312,20 @@ h1 {
     width: 100%;
     background-color: var(--base02);
     border-top: 1px solid var(--base01);
-    padding: 10px 16px; /* Adjust padding */
+    padding: 10px 16px;
     display: flex;
-    justify-content: space-between; /* Space out items */
+    justify-content: space-between;
     align-items: center;
     box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
     z-index: 100;
-    height: var(--footer-height); /* Use variable */
+    height: var(--footer-height);
     box-sizing: border-box;
 }
 
 .control-button {
     padding: 8px 12px;
     border: none;
-    border-radius: 18px; /* More rounded */
+    border-radius: 18px;
     cursor: pointer;
     font-size: 0.9rem;
     font-weight: 500;
@@ -334,58 +339,55 @@ h1 {
 }
 
 .refresh-button {
-    /* Keep specific refresh button styles */
     border-radius: 50%;
     width: 40px;
     height: 40px;
-    padding: 0; /* Remove padding if using fixed size */
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 .refresh-button svg {
-    /* Ensure SVG size is appropriate */
      width: 20px;
      height: 20px;
 }
 
-/* Future Alerts Toggle Switch */
 .toggle-switch {
     display: flex;
     align-items: center;
 }
 
 .toggle-label {
-    display: inline-flex; /* Use inline-flex for alignment */
+    display: inline-flex;
     align-items: center;
     cursor: pointer;
     color: var(--base1);
-    gap: 8px; /* Space between text and switch */
+    gap: 8px;
 }
 
 .toggle-text {
     font-size: 0.9rem;
-    user-select: none; /* Prevent text selection */
+    user-select: none;
 }
 
 .toggle-slider {
     position: relative;
     display: inline-block;
-    width: 40px; /* Width of the slider track */
-    height: 20px; /* Height of the slider track */
-    background-color: var(--base01); /* Default track color */
-    border-radius: 10px; /* Make it pill-shaped */
+    width: 40px;
+    height: 20px;
+    background-color: var(--base01);
+    border-radius: 10px;
     transition: background-color 0.3s;
 }
 
 .toggle-slider::before {
     content: "";
     position: absolute;
-    width: 16px; /* Size of the handle */
+    width: 16px;
     height: 16px;
     border-radius: 50%;
-    background-color: var(--base03); /* Handle color */
-    top: 2px; /* Position handle within track */
+    background-color: var(--base03);
+    top: 2px;
     left: 2px;
     transition: transform 0.3s;
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
@@ -407,7 +409,7 @@ h1 {
 /* Responsive grid adjustments */
 @media (min-width: 640px) {
   .status-wrapper {
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* Adjust min-width */
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   }
 }
 
@@ -426,7 +428,7 @@ h1 {
 /* Responsive adjustments for smaller screens */
 @media (max-width: 599px) {
   body {
-      padding: 8px 8px calc(var(--footer-height) + 8px) 8px; /* Adjust body padding */
+      padding: 8px 8px calc(var(--footer-height) + 8px) 8px;
   }
   .container {
     padding: 1rem; /* Reduce container padding */
@@ -452,8 +454,8 @@ h1 {
   }
 
   .footer-controls {
-      padding: 8px 12px; /* Adjust footer padding */
-      height: calc(var(--footer-height) - 10px); /* Slightly smaller footer */
+      padding: 8px 12px;
+      height: calc(var(--footer-height) - 10px);
   }
   .control-button {
       padding: 6px 10px;
