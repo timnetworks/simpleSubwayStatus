@@ -5,206 +5,292 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>simpleSubwayStatus</title>
     <meta name="description" content="Simple MTA status alerts for your line of choice. Easily view and filter alerts for the New York City Metropolitan Transit Association lines of your choice.">
-    <meta property="og:url" content="https://timnetworks.net/simsubs/">
+    <meta property="og:url" content="https://simsubs.timnetworks.net/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="simpleSubwayStatus">
     <meta property="og:description" content="Simple MTA status alerts for your line of choice. Easily view and filter alerts for the New York City Metropolitan Transit Association lines of your choice.">
-    <meta property="og:image" content="https://timnetworks.net/simsubs/1135149410.jpg">
+    <meta property="og:image" content="https://simsubs.timnetworks.net/1135149410.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="800">
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="timnetworks.net">
-    <meta property="twitter:url" content="https://timnetworks.net/simsubs/">
+    <meta property="twitter:url" content="https://simsubs.timnetworks.net/">
     <meta name="twitter:title" content="simpleSubwayStatus">
     <meta name="twitter:description" content="Simple MTA status alerts for your line of choice. Easily view and filter alerts for the New York City Metropolitan Transit Association lines of your choice.">
-    <meta name="twitter:image" content="https://timnetworks.net/simsubs/1135149410.jpg">
+    <meta name="twitter:image" content="https://simsubs.timnetworks.net/1135149410.jpg">
     <meta name="theme-color" content="#FCCC0A">
     <link rel="icon" href="/favicon.ico">
     <link rel="icon" href="/apple-touch-icon.png" type="image/png">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/my.webmanifest">
+    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
     <div class="header-container">
       <img src="./mtalogo.png" alt="MTA New York City Subway" class="logo" />
-      <button id="refresh-button" class="refresh-button" title="Refresh statuses">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-        </svg>
-      </button>
+      <!-- Refresh button moved to footer controls -->
     </div>
     <div id="line-filters" class="line-filters">
       <div class="filter-header">
-        <span class="filter-label">Filter by line:</span>
-        <button id="clear-filters" class="clear-filters-button">Show All</button>
+        <span class="filter-label">Filter by line group:</span>
+        <!-- Clear filters button moved to footer controls -->
       </div>
       <div class="filter-buttons"></div>
     </div>
     <div id="status-container">Loading statuses...</div>
+    <div id="no-alerts-message" class="no-alerts hidden">
+        <img src="./no_alerts.png" alt="No Alerts" />
+        <p>No current alerts match your selection.</p>
+    </div>
     <footer class="footer">
       <div class="footer-main">
         <a href="https://mta.info" target="_blank" rel="noopener">visit mta.info</a>
         <span class="footer-divider">•</span>
         <a href="https://github.com/timnetworks/simpleSubwayStatus" target="_blank" rel="noopener">code on git</a>
         <span class="footer-divider">•</span>
-        <span>made with 🤖 ClaudeAI</span>
+        <span>made with Gemini</span>
       </div>
-      <div class="footer-copyright">©2025 <a target="blank" href="https://timnetworks.com">timnetworks</a> corporation, all rights reserved</div>
+      <div class="footer-copyright">©2025 the <a target="blank" href="https://timnetworks.com">timnetworks</a> corporation, all rights reserved</div>
     </footer>
   </div>
 
+  <!-- Fixed Footer Controls -->
+  <div class="footer-controls">
+      <button id="refresh-button" class="control-button refresh-button" title="Refresh statuses">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+          </svg>
+      </button>
+      <button id="clear-filters" class="control-button clear-filters-button">Show All</button>
+      <div class="toggle-switch">
+          <input type="checkbox" id="future-alerts-toggle" checked>
+          <label for="future-alerts-toggle" class="toggle-label">
+              <span class="toggle-text">Show Future</span>
+              <span class="toggle-slider"></span>
+          </label>
+      </div>
+  </div>
+
+
   <script>
-    // Group lines by color for filtering
-    const lineGroups = {
-      blue: ['A', 'C', 'E'],
-      orange: ['B', 'D', 'F', 'M'],
-      green: ['G'],
-      brown: ['J', 'Z'],
-      gray: ['L', 'S'],
-      yellow: ['N', 'Q', 'R', 'W'],
-      red: ['1', '2', '3'],
-      darkGreen: ['4', '5', '6'],
-      purple: ['7']
-    };
+    // Define MTA line groups in the desired order
+    const lineGroupsOrdered = [
+      { name: '123', lines: ['1', '2', '3'] },
+      { name: '456', lines: ['4', '5', '6'] },
+      { name: '7', lines: ['7'] },
+      { name: 'ACE', lines: ['A', 'C', 'E'] },
+      { name: 'G', lines: ['G'] },
+      { name: 'BDFM', lines: ['B', 'D', 'F', 'M'] },
+      { name: 'NQRW', lines: ['N', 'Q', 'R', 'W'] },
+      { name: 'JZ', lines: ['J', 'Z'] },
+      { name: 'L', lines: ['L'] },
+      { name: 'S_42', lines: ['S'] }, // 42nd St Shuttle
+      { name: 'S_Rock', lines: ['H'] }, // Rockaway Shuttle (often uses H internally, check API) - or use a placeholder like 'sR' if needed
+      { name: 'S_Frank', lines: ['FS'] }, // Franklin Ave Shuttle (often uses FS internally) - or use 'sF'
+      { name: 'SIR', lines: ['SI'] } // Staten Island Railroad (often uses SI internally)
+    ];
 
-    // Define color mapping
+    // Define color mapping - added SIR, adjusted Shuttles
     const lineColors = {
-      A: '#0039A6', C: '#0039A6', E: '#0039A6',
-      B: '#FF6319', D: '#FF6319', F: '#FF6319', M: '#FF6319',
-      G: '#6CBE45', J: '#996633', Z: '#996633',
-      L: '#A7A9AC', N: '#FCCC0A', Q: '#FCCC0A', R: '#FCCC0A', W: '#FCCC0A',
-      S: '#808183',
-      '1': '#EE352E', '2': '#EE352E', '3': '#EE352E',
-      '4': '#00933C', '5': '#00933C', '6': '#00933C',
-      '7': '#B933AD'
-    };
-    
-    // Filter state - initially show all lines
-    let activeFilters = {
-      all: true  // Special filter state for showing all
+      A: '#0039A6', C: '#0039A6', E: '#0039A6', // Blue
+      B: '#FF6319', D: '#FF6319', F: '#FF6319', M: '#FF6319', // Orange
+      G: '#6CBE45', // Green
+      J: '#996633', Z: '#996633', // Brown
+      L: '#A7A9AC', // Gray
+      N: '#FCCC0A', Q: '#FCCC0A', R: '#FCCC0A', W: '#FCCC0A', // Yellow
+      S: '#808183', H: '#808183', FS: '#808183', // Shuttles (Gray) - Using H for Rockaway, FS for Franklin
+      '1': '#EE352E', '2': '#EE352E', '3': '#EE352E', // Red
+      '4': '#00933C', '5': '#00933C', '6': '#00933C', // Dark Green
+      '7': '#B933AD', // Purple
+      SI: '#0039A6', // Staten Island Railroad (Blue)
+      // Add aliases if API uses different codes for shuttles sometimes
+      'sR': '#808183', // Alias for Rockaway Shuttle if 'H' isn't used
+      'sF': '#808183'  // Alias for Franklin Shuttle if 'FS' isn't used
     };
 
-    function createLineBadge(line) {
+    // Define which lines are shuttles or SIR (treated individually for filtering)
+    const individualLines = ['S', 'H', 'FS', 'SI', 'sR', 'sF']; // Include aliases
+
+    // Filter state
+    let activeFilters = {
+      all: true, // Special filter state for showing all
+      showFuture: true // State for the future alerts toggle
+    };
+    let allAlertData = []; // Store fetched data to re-apply filters without re-fetching
+
+    function createLineBadge(line, isFilterBadge = false) {
       const badge = document.createElement('span');
-      badge.textContent = line;
-      badge.style.backgroundColor = lineColors[line] || '#000';
-      badge.className = 'line-badge';
+      badge.textContent = line; // Use the API line ID for text content
+      // Use a display name for specific shuttles if needed
+      if (line === 'S') badge.textContent = 'S';
+      if (line === 'H' || line === 'sR') badge.textContent = 'SR'; // Display SR for Rockaway
+      if (line === 'FS' || line === 'sF') badge.textContent = 'SF'; // Display SF for Franklin
+      if (line === 'SI') badge.textContent = 'SIR'; // Display SIR for Staten Island
+
+      badge.style.backgroundColor = lineColors[line] || '#000'; // Use color mapping
+      badge.className = isFilterBadge ? 'line-badge filter-badge' : 'line-badge';
       return badge;
     }
 
-    // Create filters for line groups
     function createLineFilters() {
       const filterContainer = document.querySelector('.filter-buttons');
-      filterContainer.innerHTML = '';
-      
-      // Create individual line filters instead of groups
-      const allLines = [];
-      Object.values(lineGroups).forEach(lines => allLines.push(...lines));
-      
-      // Sort lines alphabetically with numbers first
-      allLines.sort((a, b) => {
-        const isANumber = !isNaN(parseInt(a));
-        const isBNumber = !isNaN(parseInt(b));
-        
-        if (isANumber && !isBNumber) return -1;
-        if (!isANumber && isBNumber) return 1;
-        return a.localeCompare(b);
-      });
-      
-      allLines.forEach(line => {
+      filterContainer.innerHTML = ''; // Clear existing filters
+
+      lineGroupsOrdered.forEach(group => {
+        const isIndividual = group.lines.some(line => individualLines.includes(line));
+        const representativeLine = group.lines[0]; // Use first line for color/display
+
         const filterButton = document.createElement('div');
         filterButton.className = 'filter-button';
-        filterButton.dataset.line = line;
-        
-        const badge = createLineBadge(line);
-        badge.classList.add('filter-badge');
+        filterButton.dataset.lines = group.lines.join(','); // Store all lines in the group
+        filterButton.dataset.groupName = group.name; // Store group name for reference
+        filterButton.title = `Filter by ${group.name} line${group.lines.length > 1 ? 's' : ''}`;
+
+        const badge = createLineBadge(representativeLine, true); // Create badge based on first line
+        // Special case for shuttle display names on filter buttons
+        if (group.name === 'S_42') badge.textContent = 'S';
+        if (group.name === 'S_Rock') badge.textContent = 'SR';
+        if (group.name === 'S_Frank') badge.textContent = 'SF';
+        if (group.name === 'SIR') badge.textContent = 'SIR';
+
         filterButton.appendChild(badge);
-        
+
         filterButton.addEventListener('click', () => {
-          // If we click on a line, only show that line
-          if (activeFilters.all) {
-            // First click - switch from showing all to showing only this line
-            activeFilters = { all: false };
-            document.querySelectorAll('.filter-button').forEach(btn => {
-              btn.classList.remove('active');
-            });
-          }
-          
-          // Toggle this specific line
-          if (activeFilters[line]) {
-            delete activeFilters[line];
-            filterButton.classList.remove('active');
-          } else {
-            activeFilters[line] = true;
-            filterButton.classList.add('active');
-          }
-          
-          // If nothing is selected, show all
-          if (Object.keys(activeFilters).length === 1 && !activeFilters.all) {
-            activeFilters = { all: true };
-            document.querySelectorAll('.filter-button').forEach(btn => {
-              btn.classList.remove('active');
-            });
-          }
-          
-          applyFilters();
+            const linesInGroup = filterButton.dataset.lines.split(',');
+            let currentlyActive = filterButton.classList.contains('active');
+
+            // If "Show All" is active, deactivate it first
+            if (activeFilters.all) {
+                activeFilters.all = false;
+                document.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove('active'));
+            }
+
+            if (currentlyActive) {
+                // Deactivate this group/line
+                linesInGroup.forEach(line => delete activeFilters[line]);
+                filterButton.classList.remove('active');
+            } else {
+                // Activate this group/line
+                linesInGroup.forEach(line => activeFilters[line] = true);
+                filterButton.classList.add('active');
+            }
+
+            // If no specific filters are active, switch back to "Show All"
+            const activeLineFilters = Object.keys(activeFilters).filter(k => k !== 'all' && k !== 'showFuture');
+            if (activeLineFilters.length === 0) {
+                activeFilters = { all: true, showFuture: activeFilters.showFuture }; // Keep future toggle state
+                document.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove('active'));
+            }
+
+            applyFilters();
         });
-        
+
         filterContainer.appendChild(filterButton);
       });
-      
+
       // Set up clear filters button
       document.getElementById('clear-filters').addEventListener('click', () => {
-        activeFilters = { all: true };
-        document.querySelectorAll('.filter-button').forEach(btn => {
-          btn.classList.remove('active');
-        });
+        activeFilters = { all: true, showFuture: activeFilters.showFuture }; // Keep future toggle state
+        document.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove('active'));
         applyFilters();
       });
-    }
-    
-    // Apply current filters to the status cards
-    function applyFilters() {
-      const statusCards = document.querySelectorAll('.status-card');
-      
-      statusCards.forEach(card => {
-        const lineBadges = card.querySelectorAll('.line-badge');
-        let shouldShow = activeFilters.all;
-        
-        if (!shouldShow) {
-          // Check if any of the lines in this card match our active filters
-          lineBadges.forEach(badge => {
-            const line = badge.textContent.trim();
-            if (activeFilters[line]) {
-              shouldShow = true;
-            }
-          });
-        }
-        
-        card.style.display = shouldShow ? '' : 'none';
+
+      // Set up future alerts toggle listener
+      document.getElementById('future-alerts-toggle').addEventListener('change', (event) => {
+          activeFilters.showFuture = event.target.checked;
+          applyFilters(); // Re-apply filters based on new toggle state
       });
     }
+
+    function isAlertVisible(alertData) {
+        // Check future date filter
+        const now = new Date().getTime() / 1000; // Current time in seconds
+        const alertStart = alertData.alert.active_period?.[0]?.start;
+        if (!activeFilters.showFuture && alertStart && alertStart > now) {
+            return false; // Hide future alert if toggle is off
+        }
+
+        // Check line filters
+        if (activeFilters.all) {
+            return true; // Show all if 'all' is active
+        }
+
+        const alertLines = getAlertLines(alertData.alert);
+        if (alertLines.length === 0) {
+            // If an alert has no lines specified, maybe show it when 'all' is selected,
+            // but hide it when specific lines are filtered? Or always show? Let's hide for now if filtering.
+             return false; // Don't show line-less alerts when filtering
+        }
+
+        // Check if any of the alert's lines match the active filters
+        return alertLines.some(line => activeFilters[line]);
+    }
+
+
+    // Apply current filters to the status cards
+    function applyFilters() {
+        const statusCards = document.querySelectorAll('.status-card');
+        const noAlertsMessage = document.getElementById('no-alerts-message');
+        const statusContainer = document.getElementById('status-container'); // The main container holding cards or message
+        let visibleCount = 0;
+
+        statusCards.forEach(card => {
+            const alertData = JSON.parse(card.dataset.alertData || '{}'); // Retrieve stored data
+
+            if (isAlertVisible(alertData)) {
+                card.style.display = ''; // Show card
+                visibleCount++;
+            } else {
+                card.style.display = 'none'; // Hide card
+            }
+        });
+
+        // Show/hide the "No Alerts" message
+        if (visibleCount === 0) {
+            noAlertsMessage.classList.remove('hidden');
+            // Optionally hide the wrapper if it affects layout
+            document.querySelector('.status-wrapper')?.classList.add('hidden');
+        } else {
+            noAlertsMessage.classList.add('hidden');
+            document.querySelector('.status-wrapper')?.classList.remove('hidden');
+        }
+    }
+
 
     // Calculate time ago
     function timeAgo(timestamp) {
       const now = new Date();
       const pastDate = new Date(timestamp * 1000);
       const diff = Math.floor((now - pastDate) / 1000);
-      
-      if (diff < 0) {
-        // Future date - unusual but possible if clocks are out of sync
-        return "just now";
-      }
-      
+
+      // Check if the date is in the future
+       if (diff < 0) {
+           const futureDiff = Math.abs(diff);
+           const minute = 60;
+           const hour = minute * 60;
+           const day = hour * 24;
+           const week = day * 7;
+           const month = day * 30; // Approximate
+           const year = day * 365; // Approximate
+
+           if (futureDiff < minute) return "starting momentarily";
+           if (futureDiff < hour) return `starting in ${Math.floor(futureDiff / minute)} min`;
+           if (futureDiff < day) return `starting in ${Math.floor(futureDiff / hour)} hr`;
+           if (futureDiff < week) return `starting in ${Math.floor(futureDiff / day)} day(s)`;
+           if (futureDiff < month) return `starting in ${Math.floor(futureDiff / week)} week(s)`;
+           if (futureDiff < year) return `starting in ${Math.floor(futureDiff / month)} month(s)`;
+           return `starting in ${Math.floor(futureDiff / year)} year(s)`;
+       }
+
+
       const minute = 60;
       const hour = minute * 60;
       const day = hour * 24;
       const week = day * 7;
       const month = day * 30;
       const year = day * 365;
-      
+
       if (diff < minute) {
         return "just now";
       } else if (diff < hour) {
@@ -233,107 +319,146 @@
       const date = new Date(timestamp * 1000);
       return date.toLocaleString('en-US', {
         timeZone: 'America/New_York',
+        weekday: 'short', // Added weekday
         month: 'short',
         day: 'numeric',
-        year: 'numeric',
+        // year: 'numeric', // Maybe omit year for brevity unless needed
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
       });
     }
 
-    async function fetchStatuses() {
-      try {
-        const response = await fetch('status.php');
-        const data = await response.json();
-        const container = document.getElementById('status-container');
-        container.innerHTML = '';
+    // Helper to get lines from an alert, handling potential inconsistencies
+    function getAlertLines(alert) {
+        if (!alert || !alert.informed_entity) return [];
+        return [...new Set(
+            alert.informed_entity
+              .map(entity => entity.route_id) // Get route_id
+              .filter(id => id && lineColors[id]) // Filter out null/undefined and unknown lines
+          )];
+    }
 
-        if (data && Array.isArray(data.entity) && data.entity.length > 0) {
-          const statusWrapper = document.createElement('div');
-          statusWrapper.className = 'status-wrapper';
-          
-          data.entity.forEach(item => {
+    // Render the status cards from the fetched data
+    function renderStatuses(data) {
+        const container = document.getElementById('status-container');
+        container.innerHTML = ''; // Clear previous content or loading message
+        allAlertData = data.entity || []; // Store data for filtering
+
+        if (!Array.isArray(allAlertData) || allAlertData.length === 0) {
+          container.innerHTML = ''; // Clear loading message
+          document.getElementById('no-alerts-message').classList.remove('hidden'); // Show no alerts message directly
+          return;
+        }
+
+        const statusWrapper = document.createElement('div');
+        statusWrapper.className = 'status-wrapper';
+        container.appendChild(statusWrapper); // Add wrapper first
+
+        allAlertData.forEach(item => {
             const alert = item.alert;
             const headerText = alert.header_text?.translation?.find(t => t.language === 'en')?.text || 'No header available';
             const descriptionText = alert.description_text?.translation?.find(t => t.language === 'en')?.text || 'No description available';
-            
-            // Extract unique line IDs and filter out any undefined or falsy values
-            const lines = [...new Set(
-              alert.informed_entity
-                .filter(entity => entity.route_id)
-                .map(entity => entity.route_id)
-            )];
+            const lines = getAlertLines(alert);
+
+            // Skip creating card if it has no valid/known lines associated
+            if (lines.length === 0) {
+                 console.warn("Alert skipped - no known lines:", item);
+                 return;
+            }
 
             // Get active period time information
             let timeInfo = '';
+            let alertTimestamp = null;
             if (alert.active_period && alert.active_period.length > 0) {
               const period = alert.active_period[0];
-              const timestamp = period.start;
-              const relativeTime = timeAgo(timestamp);
-              const fullDateTime = formatFullDate(timestamp);
-              
-              timeInfo = `
-                <div class="alert-time">
-                  <span class="time-ago">Alert Issued: ${relativeTime}</span>
-                  <span class="full-date">${fullDateTime}</span>
-                </div>`;
+              // Use 'start' as the primary timestamp for display logic
+              alertTimestamp = period.start;
+              if (alertTimestamp) {
+                const relativeTime = timeAgo(alertTimestamp);
+                const fullDateTime = formatFullDate(alertTimestamp);
+                const timeLabel = (new Date(alertTimestamp * 1000) > new Date()) ? 'Alert Starts:' : 'Alert Issued:';
+
+                timeInfo = `
+                  <div class="alert-time">
+                    <span class="time-ago">${timeLabel} ${relativeTime}</span>
+                    <span class="full-date">${fullDateTime} ET</span>
+                  </div>`;
+              }
             }
 
             const div = document.createElement('div');
             div.className = 'status-card';
+            // Store the raw alert data on the element for filtering logic
+            div.dataset.alertData = JSON.stringify(item);
+            div.dataset.timestamp = alertTimestamp || '0'; // Store timestamp for sorting/filtering if needed
+
             div.innerHTML = '<div class="status-header"></div><div class="status-details hidden"></div>';
 
             const headerDiv = div.querySelector('.status-header');
             const lineContainer = document.createElement('div');
             lineContainer.className = 'line-container';
-            
-            // Only create badges for actual line IDs
+
             lines.forEach(line => {
-              if (line && lineColors[line]) {
                 lineContainer.appendChild(createLineBadge(line));
-              }
             });
-            
+
             headerDiv.appendChild(lineContainer);
-            
-            // Create a separate element for the header text
+
             const headerTextElement = document.createElement('strong');
             headerTextElement.textContent = headerText;
             headerDiv.appendChild(headerTextElement);
-            
-            // Add timestamp information
+
             headerDiv.insertAdjacentHTML('beforeend', timeInfo);
 
             const detailsDiv = div.querySelector('.status-details');
-            detailsDiv.innerHTML = `<p>${descriptionText}</p>`;
+            // Basic sanitation - replace potential HTML tags in description
+            const sanitizedDescription = descriptionText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            detailsDiv.innerHTML = `<p>${sanitizedDescription}</p>`;
+
 
             div.addEventListener('click', (e) => {
-              // Prevent event bubbling to parent elements
               e.stopPropagation();
               detailsDiv.classList.toggle('hidden');
             });
-            
+
             statusWrapper.appendChild(div);
           });
-          
-          container.appendChild(statusWrapper);
-          
-          // Apply filters after loading content
+
+          // Apply initial filters after rendering
           applyFilters();
-        } else {
-          container.innerHTML = '<p>No current alerts.</p>';
-        }
-      } catch (error) {
-        document.getElementById('status-container').innerHTML = '<p>Failed to fetch data.</p>';
-      }
     }
 
+
+    async function fetchStatuses() {
+        const container = document.getElementById('status-container');
+        const noAlertsMessage = document.getElementById('no-alerts-message');
+        container.innerHTML = 'Loading statuses...'; // Show loading message
+        noAlertsMessage.classList.add('hidden'); // Hide no alerts message during load
+        document.querySelector('.status-wrapper')?.classList.add('hidden'); // Hide wrapper too
+
+        try {
+            const response = await fetch('status.php');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            renderStatuses(data); // Call function to process and display data
+        } catch (error) {
+            console.error("Fetch error:", error);
+            container.innerHTML = '<p>Failed to fetch data. Please try refreshing.</p>';
+            noAlertsMessage.classList.add('hidden'); // Ensure it's hidden on error too
+        }
+    }
+
+    // --- Initialization ---
     document.getElementById('refresh-button').addEventListener('click', fetchStatuses);
-    
-    // Create line filters and then fetch statuses
+
+    // Create line filters first
     createLineFilters();
+    // Then fetch initial statuses
     fetchStatuses();
+
   </script>
 </body>
 </html>

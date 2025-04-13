@@ -1,11 +1,11 @@
 /* Solarized Light Theme */
 :root {
-  --base03: #fdf6e3;
-  --base02: #eee8d5;
-  --base01: #93a1a1;
-  --base00: #839496;
-  --base0: #657b83;
-  --base1: #586e75;
+  --base03: #fdf6e3; /* Background */
+  --base02: #eee8d5; /* Container BG, Footer Controls BG */
+  --base01: #93a1a1; /* Muted text (copyright, full date) */
+  --base00: #839496; /* Regular text (alert details) */
+  --base0: #657b83;  /* Body text, slightly darker */
+  --base1: #586e75;  /* Filter label, Time ago */
   --base2: #073642;
   --base3: #002b36;
   --yellow: #b58900;
@@ -13,9 +13,11 @@
   --red: #dc322f;
   --magenta: #d33682;
   --violet: #6c71c4;
-  --blue: #268bd2;
-  --cyan: #2aa198;
-  --green: #859900;
+  --blue: #268bd2;   /* Links, Buttons, Card Border */
+  --cyan: #2aa198;   /* Hover effects */
+  --green: #859900;  /* Alert Header Text */
+
+  --footer-height: 70px; /* Define footer height for body padding */
 }
 
 body {
@@ -23,7 +25,8 @@ body {
   color: var(--base0);
   font-family: Arial, sans-serif;
   margin: 0;
-  padding: 16px;
+  /* Add padding to the bottom to prevent content being hidden by fixed footer */
+  padding: 16px 16px calc(var(--footer-height) + 16px) 16px;
   min-height: 100vh;
   box-sizing: border-box;
 }
@@ -38,7 +41,8 @@ body {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 32px);
+  /* Let container grow, but body padding handles footer space */
+  min-height: calc(100vh - 32px - var(--footer-height));
 }
 
 .header-container {
@@ -46,6 +50,7 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  /* Remove refresh button from here */
 }
 
 .logo {
@@ -62,6 +67,7 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.75rem;
+  /* Remove clear filters button from here */
 }
 
 .filter-label {
@@ -69,20 +75,6 @@ body {
   color: var(--base1);
 }
 
-.clear-filters-button {
-  background-color: var(--blue);
-  color: white;
-  border: none;
-  border-radius: 16px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: background-color 0.2s;
-}
-
-.clear-filters-button:hover {
-  background-color: var(--cyan);
-}
 
 .filter-buttons {
   display: flex;
@@ -94,6 +86,9 @@ body {
   cursor: pointer;
   opacity: 0.6;
   transition: opacity 0.2s, transform 0.2s;
+  border-radius: 50%; /* Make the clickable area round */
+  padding: 2px; /* Add slight padding around badge if needed */
+  display: inline-flex; /* Ensure it wraps the badge tightly */
 }
 
 .filter-button:hover {
@@ -103,42 +98,37 @@ body {
 
 .filter-button.active {
   opacity: 1;
+  box-shadow: 0 0 0 2px var(--blue); /* Indicate active state */
 }
 
-.filter-badge {
+.filter-badge { /* Styles for badges used in filters */
   width: 30px;
   height: 30px;
   min-width: 30px;
   min-height: 30px;
-  font-size: 16px;
+  font-size: 14px; /* Slightly smaller font for filter badges */
+  line-height: 30px; /* Center text vertically */
+  /* Inherit common badge styles */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-weight: bold;
+  border-radius: 50%;
+  text-align: center;
+  overflow: hidden;
 }
+
 
 h1 {
   color: var(--blue);
   margin: 0;
 }
 
-.refresh-button {
-  background-color: var(--blue);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.3s;
-}
-
-.refresh-button:hover {
-  background-color: var(--cyan);
-}
-
 #status-container {
   margin-top: 1rem;
   flex-grow: 1;
+  position: relative; /* Needed for absolute positioning of no-alerts */
 }
 
 .status-wrapper {
@@ -147,6 +137,10 @@ h1 {
   gap: 1rem;
   width: 100%;
 }
+.status-wrapper.hidden {
+    display: none;
+}
+
 
 .status-card {
   background-color: var(--base03);
@@ -157,7 +151,9 @@ h1 {
   break-inside: avoid;
   box-sizing: border-box;
   transition: box-shadow 0.3s;
-  height: fit-content;
+  height: fit-content; /* Important for grid layout */
+  display: flex; /* Use flex for better internal layout control */
+  flex-direction: column; /* Stack header and details */
 }
 
 .status-card:hover {
@@ -168,30 +164,39 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin-bottom: 0.5rem; /* Space between header and details */
 }
 
 .line-container {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem; /* Reduced margin */
 }
 
 .status-card strong {
   color: var(--green);
-  display: block;
+  display: block; /* Ensure header text takes full width */
+  font-weight: bold;
+  font-size: 1rem; /* Ensure header size */
 }
 
-.status-card p {
+.status-card p { /* Details text */
   color: var(--base00);
-  margin: 0.5rem 0 0;
+  margin: 0; /* Remove default margin */
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.status-details {
+    margin-top: 0.5rem; /* Add space above details when shown */
 }
 
 .status-details.hidden {
   display: none;
 }
 
-.line-badge {
+.line-badge { /* Styles for badges inside alert cards */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -199,14 +204,14 @@ h1 {
   font-weight: bold;
   width: 24px;
   height: 24px;
-  min-width: 24px;
+  min-width: 24px; /* Prevent shrinking */
   min-height: 24px;
-  max-width: 24px;
-  max-height: 24px;
   border-radius: 50%;
   text-align: center;
-  font-size: 14px;
+  font-size: 12px; /* Smaller font for card badges */
+  line-height: 24px; /* Center text vertically */
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Subtle shadow */
 }
 
 .alert-time {
@@ -226,6 +231,33 @@ h1 {
   color: var(--base01);
   margin-top: 0.25rem;
 }
+
+/* No Alerts Message */
+.no-alerts {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--base01);
+    width: 100%;
+    box-sizing: border-box;
+    flex-grow: 1; /* Try to take remaining space */
+}
+.no-alerts img {
+    max-width: 100px; /* Adjust size as needed */
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
+.no-alerts p {
+    font-size: 1.1rem;
+    color: var(--base00);
+}
+.no-alerts.hidden {
+    display: none;
+}
+
 
 /* Footer styles */
 .footer {
@@ -266,10 +298,116 @@ h1 {
   color: var(--base01);
 }
 
+
+/* Fixed Footer Controls */
+.footer-controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--base02);
+    border-top: 1px solid var(--base01);
+    padding: 10px 16px; /* Adjust padding */
+    display: flex;
+    justify-content: space-between; /* Space out items */
+    align-items: center;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    z-index: 100;
+    height: var(--footer-height); /* Use variable */
+    box-sizing: border-box;
+}
+
+.control-button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 18px; /* More rounded */
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    background-color: var(--blue);
+    color: white;
+}
+.control-button:hover {
+    background-color: var(--cyan);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.refresh-button {
+    /* Keep specific refresh button styles */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    padding: 0; /* Remove padding if using fixed size */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.refresh-button svg {
+    /* Ensure SVG size is appropriate */
+     width: 20px;
+     height: 20px;
+}
+
+/* Future Alerts Toggle Switch */
+.toggle-switch {
+    display: flex;
+    align-items: center;
+}
+
+.toggle-label {
+    display: inline-flex; /* Use inline-flex for alignment */
+    align-items: center;
+    cursor: pointer;
+    color: var(--base1);
+    gap: 8px; /* Space between text and switch */
+}
+
+.toggle-text {
+    font-size: 0.9rem;
+    user-select: none; /* Prevent text selection */
+}
+
+.toggle-slider {
+    position: relative;
+    display: inline-block;
+    width: 40px; /* Width of the slider track */
+    height: 20px; /* Height of the slider track */
+    background-color: var(--base01); /* Default track color */
+    border-radius: 10px; /* Make it pill-shaped */
+    transition: background-color 0.3s;
+}
+
+.toggle-slider::before {
+    content: "";
+    position: absolute;
+    width: 16px; /* Size of the handle */
+    height: 16px;
+    border-radius: 50%;
+    background-color: var(--base03); /* Handle color */
+    top: 2px; /* Position handle within track */
+    left: 2px;
+    transition: transform 0.3s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+#future-alerts-toggle {
+    display: none; /* Hide the actual checkbox */
+}
+
+#future-alerts-toggle:checked + .toggle-label .toggle-slider {
+    background-color: var(--green); /* Track color when checked */
+}
+
+#future-alerts-toggle:checked + .toggle-label .toggle-slider::before {
+    transform: translateX(20px); /* Move handle to the right */
+}
+
+
 /* Responsive grid adjustments */
 @media (min-width: 640px) {
   .status-wrapper {
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* Adjust min-width */
   }
 }
 
@@ -285,25 +423,64 @@ h1 {
   }
 }
 
+/* Responsive adjustments for smaller screens */
 @media (max-width: 599px) {
-  .container {
-    padding: 1rem;
+  body {
+      padding: 8px 8px calc(var(--footer-height) + 8px) 8px; /* Adjust body padding */
   }
-  
+  .container {
+    padding: 1rem; /* Reduce container padding */
+    min-height: calc(100vh - 16px - var(--footer-height));
+  }
+
   .status-card {
     padding: 0.75rem;
   }
-  
+
   .status-wrapper {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Single column */
+    gap: 0.75rem;
   }
-  
+
   .footer-main {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .footer-divider {
     display: none;
   }
+
+  .footer-controls {
+      padding: 8px 12px; /* Adjust footer padding */
+      height: calc(var(--footer-height) - 10px); /* Slightly smaller footer */
+  }
+  .control-button {
+      padding: 6px 10px;
+      font-size: 0.85rem;
+  }
+  .refresh-button {
+      width: 36px;
+      height: 36px;
+  }
+   .refresh-button svg {
+     width: 18px;
+     height: 18px;
+  }
+  .toggle-text {
+      font-size: 0.85rem;
+  }
+   .toggle-slider {
+      width: 36px;
+      height: 18px;
+      border-radius: 9px;
+  }
+  .toggle-slider::before {
+      width: 14px;
+      height: 14px;
+  }
+  #future-alerts-toggle:checked + .toggle-label .toggle-slider::before {
+      transform: translateX(18px);
+  }
+
 }
