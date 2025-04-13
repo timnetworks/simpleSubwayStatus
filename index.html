@@ -118,75 +118,95 @@
       showFuture: true // State for the future alerts toggle
     };
     let allAlertData = []; // Store fetched data to re-apply filters without re-fetching
-
     function createLineBadge(line, isFilterBadge = false) {
-      const badge = document.createElement('span');
-      badge.textContent = line; // Use the API line ID for text content
-      // Use a display name for specific shuttles if needed
-      if (line === 'S') badge.textContent = 'S';
-      if (line === 'H' || line === 'sR') badge.textContent = 'SR'; // Display SR for Rockaway
-      if (line === 'FS' || line === 'sF') badge.textContent = 'SF'; // Display SF for Franklin
-      if (line === 'SI') badge.textContent = 'SIR'; // Display SIR for Staten Island
+        const badge = document.createElement('span');
+        // Use the actual line ID for text content initially
+        badge.textContent = line;
+        // Adjust display names for specific shuttles/SIR
+        if (line === 'S') badge.textContent = 'S'; // Keep S as S
+        if (line === 'H' || line === 'sR') badge.textContent = 'SR'; // Display SR for Rockaway
+        if (line === 'FS' || line === 'sF') badge.textContent = 'SF'; // Display SF for Franklin
+        if (line === 'SI') badge.textContent = 'SIR'; // Display SIR
 
-      badge.style.backgroundColor = lineColors[line] || '#000'; // Use color mapping
-      badge.className = isFilterBadge ? 'line-badge filter-badge' : 'line-badge';
-      return badge;
+        badge.style.backgroundColor = lineColors[line] || '#000';
+        badge.className = isFilterBadge ? 'line-badge filter-badge' : 'line-badge';
+        // Ensure filter badges are circular again (CSS will handle main styling)
+        if (isFilterBadge) {
+             badge.style.width = '30px';
+             badge.style.height = '30px';
+             badge.style.borderRadius = '50%';
+             badge.style.fontSize = '14px';
+        }
+        return badge;
     }
+
 
     function createLineFilters() {
       const filterContainer = document.querySelector('.filter-buttons');
       filterContainer.innerHTML = ''; // Clear existing filters
 
       lineGroupsOrdered.forEach(group => {
-        const isIndividual = group.lines.some(line => individualLines.includes(line));
-        const representativeLine = group.lines[0]; // Use first line for color/display
+          // Create a container for the group of badges
+          const groupContainer = document.createElement('div');
+          groupContainer.className = 'filter-group-container';
+          groupContainer.dataset.groupName = group.name; // Store group name if needed
 
-        const filterButton = document.createElement('div');
-        filterButton.className = 'filter-button';
-        filterButton.dataset.lines = group.lines.join(','); // Store all lines in the group
-        filterButton.dataset.groupName = group.name; // Store group name for reference
-        filterButton.title = `Filter by ${group.name} line${group.lines.length > 1 ? 's' : ''}`;
+          // Store lines for the entire group on the container for easy access
+          groupContainer.dataset.groupLines = group.lines.join(',');
 
-        const badge = createLineBadge(representativeLine, true); // Create badge based on first line
-        // Special case for shuttle display names on filter buttons
-        if (group.name === 'S_42') badge.textContent = 'S';
-        if (group.name === 'S_Rock') badge.textContent = 'SR';
-        if (group.name === 'S_Frank') badge.textContent = 'SF';
-        if (group.name === 'SIR') badge.textContent = 'SIR';
+          // Create individual buttons for each line within the group
+          group.lines.forEach(line => {
+              const filterButton = document.createElement('div');
+              filterButton.className = 'filter-button';
+              // Store group lines on *each* button as well, needed by the click handler
+              filterButton.dataset.groupLines = group.lines.join(',');
+              filterButton.title = `Filter by ${group.name} lines`; // Tooltip indicates the group
 
-        filterButton.appendChild(badge);
+              const badge = createLineBadge(line, true); // isFilterBadge = true
+              filterButton.appendChild(badge);
 
-        filterButton.addEventListener('click', () => {
-            const linesInGroup = filterButton.dataset.lines.split(',');
-            let currentlyActive = filterButton.classList.contains('active');
+              // Add event listener to each button within the group
+              filterButton.addEventListener('click', (event) => {
+                  const clickedButton = event.currentTarget;
+                  const parentGroupContainer = clickedButton.closest('.filter-group-container');
+                  const groupLines = parentGroupContainer.dataset.groupLines.split(',');
+                  const allButtonsInGroup = parentGroupContainer.querySelectorAll('.filter-button');
 
-            // If "Show All" is active, deactivate it first
-            if (activeFilters.all) {
-                activeFilters.all = false;
-                document.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove('active'));
-            }
+                  // Check if the group is currently active (we can check the first button)
+                  const isGroupCurrentlyActive = allButtonsInGroup[0].classList.contains('active');
 
-            if (currentlyActive) {
-                // Deactivate this group/line
-                linesInGroup.forEach(line => delete activeFilters[line]);
-                filterButton.classList.remove('active');
-            } else {
-                // Activate this group/line
-                linesInGroup.forEach(line => activeFilters[line] = true);
-                filterButton.classList.add('active');
-            }
+                  // If "Show All" is active, deactivate it first
+                  if (activeFilters.all) {
+                      activeFilters.all = false;
+                      // Deactivate *all* filter buttons across all groups
+                      document.querySelectorAll('.filter-buttons .filter-button').forEach(btn => btn.classList.remove('active'));
+                  }
 
-            // If no specific filters are active, switch back to "Show All"
-            const activeLineFilters = Object.keys(activeFilters).filter(k => k !== 'all' && k !== 'showFuture');
-            if (activeLineFilters.length === 0) {
-                activeFilters = { all: true, showFuture: activeFilters.showFuture }; // Keep future toggle state
-                document.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove('active'));
-            }
+                  if (isGroupCurrentlyActive) {
+                      // Deactivate this entire group
+                      groupLines.forEach(l => delete activeFilters[l]);
+                      allButtonsInGroup.forEach(btn => btn.classList.remove('active'));
+                  } else {
+                      // Activate this entire group
+                      groupLines.forEach(l => activeFilters[l] = true);
+                      allButtonsInGroup.forEach(btn => btn.classList.add('active'));
+                  }
 
-            applyFilters();
-        });
+                  // If no specific filters are active after toggling, switch back to "Show All"
+                  const activeLineFilters = Object.keys(activeFilters).filter(k => k !== 'all' && k !== 'showFuture');
+                  if (activeLineFilters.length === 0 && !activeFilters.all) { // Added !activeFilters.all check
+                      activeFilters = { all: true, showFuture: activeFilters.showFuture }; // Keep future toggle state
+                      // Deactivate all buttons again if switching back to 'all'
+                       document.querySelectorAll('.filter-buttons .filter-button').forEach(btn => btn.classList.remove('active'));
+                  }
 
-        filterContainer.appendChild(filterButton);
+                  applyFilters();
+              });
+
+              groupContainer.appendChild(filterButton); // Add button to group container
+          });
+
+          filterContainer.appendChild(groupContainer); // Add group container to main filter area
       });
 
       // Set up clear filters button
